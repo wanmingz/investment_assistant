@@ -2,6 +2,24 @@
 
 AI-powered personal investment assistant application to help you manage investment trends, trade ideas, and trade records.
 
+## My Core Belief
+
+I believe investing is one of the fairest systems in the world.
+
+In the market, price doesn't care about your background, where you grew up, your school, or your network. Everyone sees the same price. Everyone has access to information.
+
+What truly makes the difference is understanding — and understanding can be improved through learning and effort.
+
+Technology and AI accelerate this fairness:
+
+• Tech makes information transparent
+• AI lowers the learning barrier
+• Automation removes emotional bias
+
+In the past, wealth was distributed by connections and privilege. Today, through technology and investing, wealth is increasingly distributed by cognition.
+
+My goal is to build tools that help more people gain clarity, make smarter decisions, and participate in this fairness — not just as observers, but as active participants shaping their own financial future.
+
 ## Features
 
 ### 1. 📊 6-Month Investment Trends Weekly Updates
