@@ -12,9 +12,9 @@ What truly makes the difference is understanding — and understanding can be im
 
 Technology and AI accelerate this fairness:
 
-• Tech makes information transparent
-• AI lowers the learning barrier
-• Automation removes emotional bias
+- Tech makes information transparent
+- AI lowers the learning barrier
+- Automation removes emotional bias
 
 In the past, wealth was distributed by connections and privilege. Today, through technology and investing, wealth is increasingly distributed by cognition.
 
