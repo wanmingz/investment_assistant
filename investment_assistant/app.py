@@ -25,7 +25,7 @@ db = init_database()
 st.sidebar.title("📈 Investment Assistant")
 page = st.sidebar.radio(
     "Select Feature",
-    ["Investment Trends", "Trade Ideas", "Trade Records", "Stock Prices", "Overview"]
+    ["Investment Trends", "Trade Ideas", "Trade Records", "Stock Prices", "Prompt Library", "Overview"]
 )
 
 # Investment Trends page
@@ -46,7 +46,7 @@ if page == "Investment Trends":
             week_start_date = st.date_input(
                 "Select Week Start Date",
                 value=week_start,
-                min_value=week_start,
+                min_value=datetime(2020, 1, 1).date(),  # Allow dates from 2020 onwards
                 max_value=week_start + timedelta(weeks=26)
             )
         
@@ -514,6 +514,195 @@ elif page == "Stock Prices":
                         # Update session state - input field will read this value on rerun
                         st.session_state.stock_symbols = stock
                         st.rerun()
+
+# Prompt Library page
+elif page == "Prompt Library":
+    st.header("📋 Prompt Library")
+    st.markdown("Manage your ChatGPT prompts for investment analysis. Store, edit, and organize prompts that you frequently use.")
+    
+    tab1, tab2 = st.tabs(["➕ Add New Prompt", "📚 Browse & Edit Prompts"])
+    
+    with tab1:
+        st.subheader("Add New Prompt")
+        st.markdown("Enter your prompt below and save it for future use in ChatGPT.")
+        
+        try:
+            # Get categories for dropdown
+            prompt_categories = db.get_prompt_categories()
+            
+            # Form for adding prompt
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                prompt_name = st.text_input(
+                    "Prompt Name *",
+                    value="",
+                    help="Give your prompt a descriptive name (e.g., '6-Month Market Analysis')",
+                    key="new_prompt_name"
+                )
+            
+            with col2:
+                # Get unique categories or allow custom
+                category_options = list(set(prompt_categories + ['general', 'investment', 'analysis', 'market', 'trend']))
+                category = st.selectbox(
+                    "Category",
+                    options=sorted(category_options),
+                    index=0,
+                    key="new_prompt_category"
+                )
+            
+            prompt_content = st.text_area(
+                "Prompt Content *",
+                height=400,
+                value="",
+                help="Enter your prompt text here. This is what you'll copy and use in ChatGPT or other AI tools.",
+                key="new_prompt_content",
+                placeholder="Example: Analyze the current market trends for the next 6 months and provide investment recommendations..."
+            )
+            
+            col_save, col_clear = st.columns([1, 1])
+            
+            with col_save:
+                if st.button("💾 Save Prompt", type="primary", key="save_new_prompt"):
+                    if prompt_name.strip() and prompt_content.strip():
+                        try:
+                            db.add_prompt(prompt_name.strip(), prompt_content.strip(), category)
+                            st.success("✅ Prompt saved successfully!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error saving prompt: {str(e)}")
+                    else:
+                        st.error("Please fill in both Prompt Name and Prompt Content")
+            
+            with col_clear:
+                if st.button("🗑️ Clear Form", key="clear_new_prompt"):
+                    st.rerun()
+                    
+        except AttributeError as e:
+            st.error("Database error. Please restart the application.")
+            st.code(str(e))
+    
+    with tab2:
+        st.subheader("Browse & Edit Saved Prompts")
+        
+        try:
+            # Filter by category
+            all_categories = db.get_prompt_categories()
+            if all_categories:
+                filter_category = st.selectbox(
+                    "Filter by Category",
+                    options=["All"] + sorted(all_categories),
+                    index=0,
+                    key="filter_category_browse"
+                )
+            else:
+                filter_category = "All"
+            
+            # Get prompts
+            if filter_category == "All":
+                display_prompts = db.get_prompts()
+            else:
+                display_prompts = db.get_prompts(category=filter_category)
+            
+            if display_prompts:
+                # Edit section
+                st.markdown("### ✏️ Edit Prompt")
+                prompt_options = {f"{p['name']} ({p['category']})": p['id'] for p in display_prompts}
+                selected_prompt_display = st.selectbox(
+                    "Select prompt to edit or delete",
+                    options=["-- Select a prompt --"] + list(prompt_options.keys()),
+                    key="edit_prompt_select"
+                )
+                
+                if selected_prompt_display and selected_prompt_display != "-- Select a prompt --":
+                    selected_prompt_id = prompt_options[selected_prompt_display]
+                    prompt_to_edit = db.get_prompt_by_id(selected_prompt_id)
+                    
+                    if prompt_to_edit:
+                        st.divider()
+                        
+                        col_edit1, col_edit2 = st.columns([2, 1])
+                        
+                        with col_edit1:
+                            edit_prompt_name = st.text_input(
+                                "Prompt Name *",
+                                value=prompt_to_edit['name'],
+                                key="edit_prompt_name"
+                            )
+                        
+                        with col_edit2:
+                            edit_category_options = list(set(all_categories + ['general', 'investment', 'analysis', 'market', 'trend']))
+                            edit_category = st.selectbox(
+                                "Category",
+                                options=sorted(edit_category_options),
+                                index=sorted(edit_category_options).index(prompt_to_edit['category']) if prompt_to_edit['category'] in edit_category_options else 0,
+                                key="edit_prompt_category"
+                            )
+                        
+                        edit_prompt_content = st.text_area(
+                            "Prompt Content *",
+                            height=300,
+                            value=prompt_to_edit['prompt_content'],
+                            key="edit_prompt_content"
+                        )
+                        
+                        col_update, col_delete = st.columns([1, 1])
+                        
+                        with col_update:
+                            if st.button("💾 Update Prompt", type="primary", key="update_prompt_btn"):
+                                if edit_prompt_name.strip() and edit_prompt_content.strip():
+                                    try:
+                                        db.update_prompt(selected_prompt_id, edit_prompt_name.strip(), edit_prompt_content.strip(), edit_category)
+                                        st.success("✅ Prompt updated!")
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Error updating prompt: {str(e)}")
+                                else:
+                                    st.error("Please fill in all required fields")
+                        
+                        with col_delete:
+                            if st.button("🗑️ Delete Prompt", type="secondary", key="delete_prompt_btn"):
+                                try:
+                                    db.delete_prompt(selected_prompt_id)
+                                    st.success("✅ Prompt deleted!")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Error deleting prompt: {str(e)}")
+                
+                st.divider()
+                st.markdown("### 📚 All Saved Prompts")
+                
+                # Group by category
+                prompts_by_category = {}
+                for prompt in display_prompts:
+                    cat = prompt['category']
+                    if cat not in prompts_by_category:
+                        prompts_by_category[cat] = []
+                    prompts_by_category[cat].append(prompt)
+                
+                for category, category_prompts in sorted(prompts_by_category.items()):
+                    st.markdown(f"#### 📁 {category}")
+                    
+                    for prompt in category_prompts:
+                        with st.expander(f"📝 {prompt['name']} (Updated: {prompt['updated_at'][:10]})"):
+                            st.text_area(
+                                "Content",
+                                value=prompt['prompt_content'],
+                                height=200,
+                                disabled=True,
+                                key=f"view_{prompt['id']}"
+                            )
+                            st.caption(f"Created: {prompt['created_at']}")
+                            
+                            # Display prompt content in code block for easy copying
+                            st.markdown("**Copy this prompt:**")
+                            st.code(prompt['prompt_content'], language=None)
+            else:
+                st.info("No prompts saved yet. Add your first prompt in the 'Add New Prompt' tab!")
+                
+        except AttributeError as e:
+            st.error("Database error. Please restart the application.")
+            st.code(str(e))
 
 # Overview page
 elif page == "Overview":

@@ -73,6 +73,18 @@ class Database:
             )
         """)
         
+        # Prompt 库表
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS prompts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                prompt_content TEXT NOT NULL,
+                category TEXT DEFAULT 'general',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
         conn.commit()
         conn.close()
     
@@ -294,4 +306,98 @@ class Database:
             "sell_amount": sell_amount,
             "net_amount": buy_amount - sell_amount
         }
+    
+    # Prompt 库相关方法
+    def add_prompt(self, name: str, prompt_content: str, category: str = 'general') -> int:
+        """添加 Prompt."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO prompts (name, prompt_content, category)
+            VALUES (?, ?, ?)
+        """, (name, prompt_content, category))
+        
+        prompt_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return prompt_id
+    
+    def get_prompts(self, category: Optional[str] = None) -> List[Dict]:
+        """获取 Prompt 列表."""
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        if category:
+            cursor.execute("""
+                SELECT * FROM prompts
+                WHERE category = ?
+                ORDER BY name ASC
+            """, (category,))
+        else:
+            cursor.execute("""
+                SELECT * FROM prompts
+                ORDER BY category ASC, name ASC
+            """)
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+    
+    def get_prompt_by_id(self, prompt_id: int) -> Optional[Dict]:
+        """根据 ID 获取 Prompt."""
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT * FROM prompts
+            WHERE id = ?
+        """, (prompt_id,))
+        
+        row = cursor.fetchone()
+        conn.close()
+        
+        return dict(row) if row else None
+    
+    def update_prompt(self, prompt_id: int, name: str, prompt_content: str, category: str = 'general'):
+        """更新 Prompt."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            UPDATE prompts
+            SET name = ?, prompt_content = ?, category = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (name, prompt_content, category, prompt_id))
+        
+        conn.commit()
+        conn.close()
+    
+    def delete_prompt(self, prompt_id: int):
+        """删除 Prompt."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM prompts WHERE id = ?", (prompt_id,))
+        
+        conn.commit()
+        conn.close()
+    
+    def get_prompt_categories(self) -> List[str]:
+        """获取所有 Prompt 分类."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT DISTINCT category FROM prompts
+            ORDER BY category ASC
+        """)
+        
+        categories = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        
+        return categories
 
