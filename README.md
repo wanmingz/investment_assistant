@@ -2,7 +2,7 @@
 
 AI-powered personal investment assistant application to help you manage investment trends, trade ideas, and trade records.
 
-## My Core Belief
+## My Core Belief test
 
 I believe investing is one of the fairest systems in the world.
 
