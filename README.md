@@ -2,34 +2,38 @@
 
 AI-powered personal investment assistant application to help you manage investment trends, trade ideas, and trade records.
 
-## Mission
+# 🎯 Mission
 
-**To democratize investment understanding through technology, enabling more people to participate in wealth distribution based on cognition rather than privilege.**
+To democratize investing through technology — empowering people to build wealth through **understanding**, not **privilege**.
 
-### Core Elements
+---
 
-1. **Democratize Investment Understanding**
-   - Provide tools that help users understand markets, trends, and trading opportunities
-   - Offer structured information management (trend reports, trade ideas, records)
+## 🧭 Core Principles
 
-2. **Eliminate Information Asymmetry**
-   - Unified information management interface
-   - Real-time stock data queries
-   - Transparent trade records and analysis
+### 1. Democratize Investment Understanding  
+Simplify complex market insights into accessible, actionable knowledge for everyone.
 
-3. **Reduce Emotional Bias**
-   - Systematic recording and management to reduce impulsive decisions
-   - Structured trade idea management (setting stop-loss, target prices, etc.)
+### 2. Eliminate Information Asymmetry  
+Provide a transparent platform for managing market data, trade ideas, and performance insights in one unified space.
 
-4. **From Observers to Active Participants**
-   - Not just watching prices, but understanding, recording, analyzing, and executing
-   - Transform from passive observation to active investment decision management
+### 3. Reduce Emotional Bias  
+Transform impulsive actions into structured, data-driven decisions through systematic tracking and reflection.
 
-### One-Line Summary
+### 4. Enable Active Participation  
+Help users move from passive observers to confident investors who analyze, plan, and act with clarity.
 
-**"Transform investing from a game based on connections and privilege into a fair arena based on cognition and understanding."**
+---
 
-This product embodies the belief that "investing is a fair system" by providing tools that lower the learning barrier, enabling more people to participate in investing through improved cognition rather than relying on background or connections.
+## 💡 One-Line Summary
+
+> Turning investing into a fair arena driven by **cognition**, not **privilege**.
+
+---
+
+## 🧠 Belief
+
+Investing is one of the fairest systems in the wor
+
 ## Features
 
 ### 1. 🤖 GPT Trends & Ideas
