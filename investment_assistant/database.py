@@ -85,18 +85,25 @@ class Database:
             )
         """)
         
-        # GPT Trend 表（存储人工写的趋势报告）
+        # GPT Trend 表（存储人工写的趋势报告和对应的 idea，一一对应）
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS gpt_trends (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 trend_content TEXT NOT NULL,
+                idea_content TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
-        # GPT Idea 表（存储趋势对应的想法，纯文本）
+        # 如果表已存在但没有 idea_content 字段，添加该字段
+        cursor.execute("PRAGMA table_info(gpt_trends)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if 'idea_content' not in columns:
+            cursor.execute("ALTER TABLE gpt_trends ADD COLUMN idea_content TEXT")
+        
+        # GPT Idea 表（保留用于兼容，但不再使用）
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS gpt_ideas (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -425,15 +432,15 @@ class Database:
         return categories
     
     # GPT Trend 相关方法
-    def add_gpt_trend(self, title: str, trend_content: str) -> int:
-        """添加 GPT Trend."""
+    def add_gpt_trend(self, title: str, trend_content: str, idea_content: Optional[str] = None) -> int:
+        """添加 GPT Trend（包含对应的 idea）."""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
-            INSERT INTO gpt_trends (title, trend_content)
-            VALUES (?, ?)
-        """, (title, trend_content))
+            INSERT INTO gpt_trends (title, trend_content, idea_content)
+            VALUES (?, ?, ?)
+        """, (title, trend_content, idea_content))
         
         trend_id = cursor.lastrowid
         conn.commit()
@@ -473,16 +480,37 @@ class Database:
         
         return dict(row) if row else None
     
-    def update_gpt_trend(self, trend_id: int, title: str, trend_content: str):
-        """更新 GPT Trend."""
+    def update_gpt_trend(self, trend_id: int, title: str, trend_content: str, idea_content: Optional[str] = None):
+        """更新 GPT Trend（包含对应的 idea）."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        if idea_content is not None:
+            cursor.execute("""
+                UPDATE gpt_trends
+                SET title = ?, trend_content = ?, idea_content = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (title, trend_content, idea_content, trend_id))
+        else:
+            cursor.execute("""
+                UPDATE gpt_trends
+                SET title = ?, trend_content = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (title, trend_content, trend_id))
+        
+        conn.commit()
+        conn.close()
+    
+    def update_gpt_trend_idea(self, trend_id: int, idea_content: str):
+        """更新 GPT Trend 对应的 Idea."""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
             UPDATE gpt_trends
-            SET title = ?, trend_content = ?, updated_at = CURRENT_TIMESTAMP
+            SET idea_content = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        """, (title, trend_content, trend_id))
+        """, (idea_content, trend_id))
         
         conn.commit()
         conn.close()
