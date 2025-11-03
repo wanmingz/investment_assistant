@@ -85,6 +85,29 @@ class Database:
             )
         """)
         
+        # GPT Trend 表（存储人工写的趋势报告）
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS gpt_trends (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                trend_content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # GPT Idea 表（存储趋势对应的想法，纯文本）
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS gpt_ideas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                trend_id INTEGER NOT NULL,
+                idea_content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(trend_id) REFERENCES gpt_trends(id)
+            )
+        """)
+        
         conn.commit()
         conn.close()
     
@@ -400,4 +423,153 @@ class Database:
         conn.close()
         
         return categories
+    
+    # GPT Trend 相关方法
+    def add_gpt_trend(self, title: str, trend_content: str) -> int:
+        """添加 GPT Trend."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO gpt_trends (title, trend_content)
+            VALUES (?, ?)
+        """, (title, trend_content))
+        
+        trend_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return trend_id
+    
+    def get_gpt_trends(self, limit: int = 100) -> List[Dict]:
+        """获取所有 GPT Trend."""
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT * FROM gpt_trends
+            ORDER BY created_at DESC
+            LIMIT ?
+        """, (limit,))
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+    
+    def get_gpt_trend_by_id(self, trend_id: int) -> Optional[Dict]:
+        """根据 ID 获取 GPT Trend."""
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT * FROM gpt_trends
+            WHERE id = ?
+        """, (trend_id,))
+        
+        row = cursor.fetchone()
+        conn.close()
+        
+        return dict(row) if row else None
+    
+    def update_gpt_trend(self, trend_id: int, title: str, trend_content: str):
+        """更新 GPT Trend."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            UPDATE gpt_trends
+            SET title = ?, trend_content = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (title, trend_content, trend_id))
+        
+        conn.commit()
+        conn.close()
+    
+    def delete_gpt_trend(self, trend_id: int):
+        """删除 GPT Trend（同时删除关联的 ideas）."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        # 先删除关联的 ideas
+        cursor.execute("DELETE FROM gpt_ideas WHERE trend_id = ?", (trend_id,))
+        # 再删除 trend
+        cursor.execute("DELETE FROM gpt_trends WHERE id = ?", (trend_id,))
+        
+        conn.commit()
+        conn.close()
+    
+    # GPT Idea 相关方法
+    def add_gpt_idea(self, trend_id: int, idea_content: str) -> int:
+        """添加 GPT Idea（纯文本）."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO gpt_ideas (trend_id, idea_content)
+            VALUES (?, ?)
+        """, (trend_id, idea_content))
+        
+        idea_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return idea_id
+    
+    def get_gpt_ideas_by_trend(self, trend_id: int) -> List[Dict]:
+        """获取某个趋势的 GPT Ideas."""
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT * FROM gpt_ideas
+            WHERE trend_id = ?
+            ORDER BY created_at DESC
+        """, (trend_id,))
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+    
+    def get_gpt_idea_by_id(self, idea_id: int) -> Optional[Dict]:
+        """根据 ID 获取 GPT Idea."""
+        conn = self.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT * FROM gpt_ideas
+            WHERE id = ?
+        """, (idea_id,))
+        
+        row = cursor.fetchone()
+        conn.close()
+        
+        return dict(row) if row else None
+    
+    def update_gpt_idea(self, idea_id: int, idea_content: str):
+        """更新 GPT Idea（纯文本）."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            UPDATE gpt_ideas
+            SET idea_content = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (idea_content, idea_id))
+        
+        conn.commit()
+        conn.close()
+    
+    def delete_gpt_idea(self, idea_id: int):
+        """删除 GPT Idea."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM gpt_ideas WHERE id = ?", (idea_id,))
+        
+        conn.commit()
+        conn.close()
 

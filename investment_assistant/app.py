@@ -19,14 +19,23 @@ def init_database():
     """Initialize database connection."""
     return Database()
 
+# Clear cache if needed: uncomment the line below and save, then comment it again
+# st.cache_resource.clear()
+
 db = init_database()
 
 # Sidebar navigation
 st.sidebar.title("📈 Investment Assistant")
 page = st.sidebar.radio(
     "Select Feature",
-    ["Investment Trends", "Trade Ideas", "Trade Records", "Stock Prices", "Prompt Library", "Overview"]
+    ["Investment Trends", "Trade Ideas", "Trade Records", "Stock Prices", "GPT Idea", "Prompt Library", "Overview"]
 )
+
+# Clear cache button
+st.sidebar.divider()
+if st.sidebar.button("🔄 Clear Cache"):
+    st.cache_resource.clear()
+    st.rerun()
 
 # Investment Trends page
 if page == "Investment Trends":
@@ -703,6 +712,214 @@ elif page == "Prompt Library":
         except AttributeError as e:
             st.error("Database error. Please restart the application.")
             st.code(str(e))
+
+# GPT Idea page
+elif page == "GPT Idea":
+    st.header("🤖 GPT Idea")
+    st.markdown("Store your manually written trends and corresponding GPT-generated ideas (text only).")
+    
+    tab1, tab2 = st.tabs(["📊 View", "➕ Manage"])
+    
+    with tab1:
+        st.subheader("Browse Trends and Ideas")
+        
+        try:
+            gpt_trends = db.get_gpt_trends()
+        except AttributeError:
+            # Clear cache and reinitialize if method doesn't exist
+            st.cache_resource.clear()
+            db = init_database()
+            gpt_trends = db.get_gpt_trends()
+        
+        if gpt_trends:
+            for trend in gpt_trends:
+                with st.expander(f"📈 {trend['title']} (Updated: {trend['updated_at'][:10]})", expanded=False):
+                    st.markdown("### Trend Report")
+                    st.markdown(trend['trend_content'])
+                    st.caption(f"Created: {trend['created_at']}")
+                    
+                    st.divider()
+                    
+                    # 显示对应的 Ideas（纯文本）
+                    st.markdown("### 💡 Corresponding Ideas")
+                    try:
+                        ideas = db.get_gpt_ideas_by_trend(trend['id'])
+                    except Exception as e:
+                        st.error(f"Error loading ideas: {str(e)}")
+                        ideas = []
+                    
+                    if ideas:
+                        for idx, idea in enumerate(ideas, 1):
+                            with st.container():
+                                st.markdown(f"#### 💡 Idea #{idx}")
+                                # 使用 markdown 显示内容，支持多行文本
+                                st.markdown(idea['idea_content'])
+                                st.caption(f"📅 Created: {idea['created_at']}")
+                                if idx < len(ideas):
+                                    st.divider()
+                    else:
+                        st.info("No ideas for this trend yet.")
+        else:
+            st.info("No GPT trends saved yet. Add your first trend in the 'Manage' tab.")
+    
+    with tab2:
+        st.subheader("Add or Edit Trend and Ideas")
+        
+        # 选择编辑模式
+        edit_mode = st.checkbox("Edit existing trend", value=False)
+        selected_trend_id = None
+        
+        if edit_mode:
+            try:
+                gpt_trends = db.get_gpt_trends()
+            except AttributeError:
+                st.cache_resource.clear()
+                db = init_database()
+                gpt_trends = db.get_gpt_trends()
+            if gpt_trends:
+                trend_options = {t['title']: t['id'] for t in gpt_trends}
+                selected_trend_title = st.selectbox(
+                    "Select trend to edit",
+                    options=["-- Select --"] + list(trend_options.keys())
+                )
+                
+                if selected_trend_title and selected_trend_title != "-- Select --":
+                    selected_trend_id = trend_options[selected_trend_title]
+                    trend_to_edit = db.get_gpt_trend_by_id(selected_trend_id)
+                    
+                    if trend_to_edit:
+                        default_title = trend_to_edit['title']
+                        default_content = trend_to_edit['trend_content']
+            else:
+                default_title = ""
+                default_content = ""
+                edit_mode = False
+                st.info("No trends to edit. Create a new one below.")
+        else:
+            default_title = ""
+            default_content = ""
+        
+        # Trend 表单
+        st.markdown("### 📈 Trend Information")
+        
+        trend_title = st.text_input(
+            "Trend Title *",
+            value=default_title if 'default_title' in locals() else "",
+            help="Give your trend a descriptive title",
+            key="gpt_trend_title"
+        )
+        
+        trend_content = st.text_area(
+            "Trend Content *",
+            height=300,
+            value=default_content if 'default_content' in locals() else "",
+            help="Enter your manually written trend analysis",
+            key="gpt_trend_content"
+        )
+        
+        col_save_trend, col_delete_trend = st.columns([1, 1])
+        
+        # 检查是否有刚保存的 trend（通过 session state）
+        if 'gpt_trend_id' not in st.session_state:
+            st.session_state.gpt_trend_id = None
+        
+        with col_save_trend:
+            if edit_mode and selected_trend_id:
+                if st.button("💾 Update Trend", type="primary", key="update_gpt_trend"):
+                    if trend_title.strip() and trend_content.strip():
+                        db.update_gpt_trend(selected_trend_id, trend_title.strip(), trend_content.strip())
+                        st.session_state.gpt_trend_id = selected_trend_id
+                        st.success("✅ Trend updated!")
+                        st.rerun()
+                    else:
+                        st.error("Please fill in all required fields")
+            else:
+                if st.button("💾 Save Trend", type="primary", key="save_gpt_trend"):
+                    if trend_title.strip() and trend_content.strip():
+                        new_trend_id = db.add_gpt_trend(trend_title.strip(), trend_content.strip())
+                        st.session_state.gpt_trend_id = new_trend_id
+                        st.success("✅ Trend saved!")
+                        st.rerun()
+                    else:
+                        st.error("Please fill in all required fields")
+        
+        with col_delete_trend:
+            if edit_mode and selected_trend_id:
+                if st.button("🗑️ Delete Trend", type="secondary", key="delete_gpt_trend"):
+                    db.delete_gpt_trend(selected_trend_id)
+                    st.session_state.gpt_trend_id = None
+                    st.success("✅ Trend deleted!")
+                    st.rerun()
+        
+        # Ideas 管理部分
+        # 使用 selected_trend_id（编辑模式）或 session_state.gpt_trend_id（刚保存）
+        current_trend_id = selected_trend_id if selected_trend_id else st.session_state.get('gpt_trend_id')
+        
+        # 如果选择了 trend 进行编辑，更新 session state
+        if selected_trend_id:
+            st.session_state.gpt_trend_id = selected_trend_id
+            current_trend_id = selected_trend_id
+        
+        # 显示当前选中的 trend ID（用于调试）
+        if current_trend_id:
+            st.info(f"📌 Managing ideas for Trend ID: {current_trend_id}")
+        
+        if current_trend_id:
+            st.divider()
+            st.markdown("### 💡 Ideas for this Trend (Text Only)")
+            
+            # 显示现有 ideas
+            existing_ideas = db.get_gpt_ideas_by_trend(current_trend_id)
+            
+            if existing_ideas:
+                st.markdown("#### Existing Ideas")
+                for idea in existing_ideas:
+                    with st.expander(f"Edit: Idea #{idea['id']}", expanded=False):
+                        edit_idea_content = st.text_area(
+                            "Idea Content",
+                            value=idea['idea_content'],
+                            height=300,
+                            key=f"edit_idea_{idea['id']}"
+                        )
+                        
+                        col_update_idea, col_delete_idea = st.columns([1, 1])
+                        
+                        with col_update_idea:
+                            if st.button("💾 Update", key=f"update_idea_{idea['id']}"):
+                                if edit_idea_content.strip():
+                                    db.update_gpt_idea(idea['id'], edit_idea_content.strip())
+                                    st.success("✅ Idea updated!")
+                                    st.rerun()
+                                else:
+                                    st.error("Idea content cannot be empty")
+                        
+                        with col_delete_idea:
+                            if st.button("🗑️ Delete", key=f"delete_idea_{idea['id']}"):
+                                db.delete_gpt_idea(idea['id'])
+                                st.success("✅ Idea deleted!")
+                                st.rerun()
+                
+                st.divider()
+            
+            # 添加新 idea（纯文本）
+            st.markdown("#### Add New Idea")
+            
+            new_idea_content = st.text_area(
+                "Idea Content *",
+                height=300,
+                key="new_gpt_idea",
+                placeholder="Enter GPT-generated idea content here (text only)..."
+            )
+            
+            if st.button("💾 Add Idea", type="primary", key="add_gpt_idea"):
+                if new_idea_content.strip():
+                    db.add_gpt_idea(current_trend_id, new_idea_content.strip())
+                    st.success("✅ Idea added!")
+                    st.rerun()
+                else:
+                    st.error("Please enter idea content")
+        elif trend_title.strip() and trend_content.strip() and not edit_mode:
+            st.info("💡 Save the trend first, then you can add ideas.")
 
 # Overview page
 elif page == "Overview":
