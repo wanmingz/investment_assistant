@@ -2,7 +2,9 @@
 
 AI-powered personal investment assistant application to help you manage investment trends, trade ideas, and trade records.
 
-# 🎯 Mission
+---
+
+## 🎯 Mission
 
 To democratize investing through technology — empowering people to build wealth through **understanding**, not **privilege**.
 
@@ -10,16 +12,16 @@ To democratize investing through technology — empowering people to build wealt
 
 ## 🧭 Core Principles
 
-### 1. Democratize Investment Understanding  
+### 1. Democratize Investment Understanding
 Simplify complex market insights into accessible, actionable knowledge for everyone.
 
-### 2. Eliminate Information Asymmetry  
+### 2. Eliminate Information Asymmetry
 Provide a transparent platform for managing market data, trade ideas, and performance insights in one unified space.
 
-### 3. Reduce Emotional Bias  
+### 3. Reduce Emotional Bias
 Transform impulsive actions into structured, data-driven decisions through systematic tracking and reflection.
 
-### 4. Enable Active Participation  
+### 4. Enable Active Participation
 Help users move from passive observers to confident investors who analyze, plan, and act with clarity.
 
 ---
@@ -32,7 +34,20 @@ Help users move from passive observers to confident investors who analyze, plan,
 
 ## 🧠 Belief
 
-Investing is one of the fairest systems in the wor
+Investing is one of the fairest systems in the world. In the market, price doesn't care about your background, where you grew up, your school, or your network. Everyone sees the same price. Everyone has access to information.
+
+What truly makes the difference is understanding — and understanding can be improved through learning and effort.
+
+Technology and AI accelerate this fairness:
+- **Tech makes information transparent** — Unified interfaces for managing investment data
+- **AI lowers the learning barrier** — Tools that help understand markets and trends
+- **Automation removes emotional bias** — Systematic recording and structured decision-making
+
+In the past, wealth was distributed by connections and privilege. Today, through technology and investing, wealth is increasingly distributed by cognition.
+
+Our goal is to build tools that help more people gain clarity, make smarter decisions, and participate in this fairness — not just as observers, but as active participants shaping their own financial future.
+
+---
 
 ## Features
 
@@ -79,6 +94,8 @@ Investing is one of the fairest systems in the wor
 - Recent trades summary
 - Aggregate metrics across all features
 
+---
+
 ## Installation
 
 ### Using Poetry (Recommended)
@@ -97,6 +114,8 @@ poetry shell
 pip install streamlit yfinance pandas python-dotenv
 ```
 
+---
+
 ## Running
 
 ```bash
@@ -106,6 +125,8 @@ poetry run streamlit run investment_assistant/app.py
 # Or run directly
 streamlit run investment_assistant/app.py
 ```
+
+---
 
 ## Data Storage
 
@@ -117,6 +138,8 @@ The database includes the following tables:
 - `trades`: Stores actual trade records
 - `prompts`: Stores frequently used prompts
 
+---
+
 ## Environment Variables (Optional)
 
 If you need to use OpenAI API for AI-assisted analysis (future feature), you can create a `.env` file in the project root directory:
@@ -124,6 +147,8 @@ If you need to use OpenAI API for AI-assisted analysis (future feature), you can
 ```
 OPENAI_API_KEY=your_api_key_here
 ```
+
+---
 
 ## Project Structure
 
@@ -146,32 +171,43 @@ investment-assistant/
 - `poetry.lock`: Auto-generated dependency version lock file by Poetry
 - `__pycache__/`: Python cache directory (auto-generated, can be ignored)
 
+---
+
 ## Usage
 
-1. **GPT Trends & Ideas**: 
+1. **GPT Trends & Ideas**
    - Store your manually written trend reports
    - Add corresponding GPT-generated ideas (one idea per trend)
    - View all trends and ideas in an organized format
    - Edit or delete trends and their corresponding ideas
 
-2. **Trade Ideas**: Record investment ideas you want to execute, including symbols, price ranges, and reasoning
+2. **Trade Ideas**
+   - Record investment ideas you want to execute
+   - Include symbols, price ranges, and reasoning
 
-3. **Trade Records**: Record detailed trade information after executing actual trades
+3. **Trade Records**
+   - Record detailed trade information after executing actual trades
 
-4. **Stock Price Lookup**: Enter stock symbols (e.g., AAPL, MSFT, TSLA) to query real-time prices, historical data, and detailed information
+4. **Stock Price Lookup**
+   - Enter stock symbols (e.g., AAPL, MSFT, TSLA) to query real-time prices, historical data, and detailed information
 
-5. **Prompt Library**: 
+5. **Prompt Library**
    - Store frequently used prompts for quick access
    - Organize prompts by category
    - Copy prompts for use in other applications
 
-6. **Data Overview**: View aggregated statistics of all data
+6. **Data Overview**
+   - View aggregated statistics of all data
+
+---
 
 ## Cache Management
 
 The application uses Streamlit's caching mechanism for performance. If you encounter issues with outdated data or methods, you can:
 - Click the "🔄 Clear Cache" button in the sidebar
 - Or restart the Streamlit application
+
+---
 
 ## Tech Stack
 
@@ -180,6 +216,8 @@ The application uses Streamlit's caching mechanism for performance. If you encou
 - **Pandas**: Data processing
 - **yfinance**: Stock data retrieval
 - **Python 3.11+**: Runtime environment
+
+---
 
 ## License
 
