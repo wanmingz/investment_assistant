@@ -2,13 +2,9 @@
 
 AI-powered personal investment assistant application to help you manage investment trends, trade ideas, and trade records.
 
----
-
 ## 🎯 Mission
 
 To democratize investing through technology — empowering people to build wealth through **understanding**, not **privilege**.
-
----
 
 ## 🧭 Core Principles
 
@@ -24,13 +20,9 @@ Transform impulsive actions into structured, data-driven decisions through syste
 ### 4. Enable Active Participation
 Help users move from passive observers to confident investors who analyze, plan, and act with clarity.
 
----
-
 ## 💡 One-Line Summary
 
 > Turning investing into a fair arena driven by **cognition**, not **privilege**.
-
----
 
 ## 🧠 Belief
 
@@ -39,6 +31,7 @@ Investing is one of the fairest systems in the world. In the market, price doesn
 What truly makes the difference is understanding — and understanding can be improved through learning and effort.
 
 Technology and AI accelerate this fairness:
+
 - **Tech makes information transparent** — Unified interfaces for managing investment data
 - **AI lowers the learning barrier** — Tools that help understand markets and trends
 - **Automation removes emotional bias** — Systematic recording and structured decision-making
@@ -46,8 +39,6 @@ Technology and AI accelerate this fairness:
 In the past, wealth was distributed by connections and privilege. Today, through technology and investing, wealth is increasingly distributed by cognition.
 
 Our goal is to build tools that help more people gain clarity, make smarter decisions, and participate in this fairness — not just as observers, but as active participants shaping their own financial future.
-
----
 
 ## Features
 
@@ -94,8 +85,6 @@ Our goal is to build tools that help more people gain clarity, make smarter deci
 - Recent trades summary
 - Aggregate metrics across all features
 
----
-
 ## Installation
 
 ### Using Poetry (Recommended)
@@ -114,8 +103,6 @@ poetry shell
 pip install streamlit yfinance pandas python-dotenv
 ```
 
----
-
 ## Running
 
 ```bash
@@ -126,19 +113,16 @@ poetry run streamlit run investment_assistant/app.py
 streamlit run investment_assistant/app.py
 ```
 
----
-
 ## Data Storage
 
 The application uses SQLite database to store data. The database file `investment_data.db` will be automatically created on first run.
 
 The database includes the following tables:
+
 - `gpt_trends`: Stores trend reports and their corresponding ideas (one-to-one relationship)
 - `trade_ideas`: Stores investment trade ideas
 - `trades`: Stores actual trade records
 - `prompts`: Stores frequently used prompts
-
----
 
 ## Environment Variables (Optional)
 
@@ -147,8 +131,6 @@ If you need to use OpenAI API for AI-assisted analysis (future feature), you can
 ```
 OPENAI_API_KEY=your_api_key_here
 ```
-
----
 
 ## Project Structure
 
@@ -166,12 +148,11 @@ investment-assistant/
 ```
 
 **Notes:**
+
 - `investment_data.db`: The database file will be automatically created in the `investment_assistant/` directory on first run
 - `.env`: Optional file for storing sensitive information like API keys, needs to be created manually
 - `poetry.lock`: Auto-generated dependency version lock file by Poetry
 - `__pycache__/`: Python cache directory (auto-generated, can be ignored)
-
----
 
 ## Usage
 
@@ -199,15 +180,12 @@ investment-assistant/
 6. **Data Overview**
    - View aggregated statistics of all data
 
----
-
 ## Cache Management
 
 The application uses Streamlit's caching mechanism for performance. If you encounter issues with outdated data or methods, you can:
+
 - Click the "🔄 Clear Cache" button in the sidebar
 - Or restart the Streamlit application
-
----
 
 ## Tech Stack
 
@@ -216,8 +194,6 @@ The application uses Streamlit's caching mechanism for performance. If you encou
 - **Pandas**: Data processing
 - **yfinance**: Stock data retrieval
 - **Python 3.11+**: Runtime environment
-
----
 
 ## License
 
