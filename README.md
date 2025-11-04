@@ -20,26 +20,6 @@ Transform impulsive actions into structured, data-driven decisions through syste
 ### 4. Enable Active Participation
 Help users move from passive observers to confident investors who analyze, plan, and act with clarity.
 
-## 💡 One-Line Summary
-
-> Turning investing into a fair arena driven by **cognition**, not **privilege**.
-
-## 🧠 Belief
-
-Investing is one of the fairest systems in the world. In the market, price doesn't care about your background, where you grew up, your school, or your network. Everyone sees the same price. Everyone has access to information.
-
-What truly makes the difference is understanding — and understanding can be improved through learning and effort.
-
-Technology and AI accelerate this fairness:
-
-- **Tech makes information transparent** — Unified interfaces for managing investment data
-- **AI lowers the learning barrier** — Tools that help understand markets and trends
-- **Automation removes emotional bias** — Systematic recording and structured decision-making
-
-In the past, wealth was distributed by connections and privilege. Today, through technology and investing, wealth is increasingly distributed by cognition.
-
-Our goal is to build tools that help more people gain clarity, make smarter decisions, and participate in this fairness — not just as observers, but as active participants shaping their own financial future.
-
 ## Features
 
 ### 1. 🤖 GPT Trends & Ideas
