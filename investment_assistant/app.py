@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import yfinance as yf
 import requests
+from pathlib import Path
 from database import Database
 
 # Helper function for symbol search
@@ -63,7 +64,7 @@ db = init_database()
 st.sidebar.title("📈 Investment Assistant")
 page = st.sidebar.radio(
     "Select Feature",
-    ["GPT Trends & Ideas", "Trade Ideas", "Trade Records", "Stock Prices", "Prompt Library", "Overview"]
+    ["About", "GPT Trends & Ideas", "Trade Ideas", "Trade Records", "Stock Prices", "Prompt Library", "Overview"]
 )
 
 # Clear cache button
@@ -72,8 +73,26 @@ if st.sidebar.button("🔄 Clear Cache"):
     st.cache_resource.clear()
     st.rerun()
 
+# About/README page
+if page == "About":
+    # Read README.md file
+    # Get the path to README.md (parent directory of app.py)
+    current_file = Path(__file__).resolve()
+    app_dir = current_file.parent
+    readme_path = app_dir.parent / "README.md"
+    
+    if readme_path.exists():
+        with open(readme_path, 'r', encoding='utf-8') as f:
+            readme_content = f.read()
+        
+        # Display README content
+        st.markdown(readme_content)
+    else:
+        st.error("README.md file not found. Please ensure the file exists in the project root.")
+        st.info("Expected path: " + str(readme_path))
+
 # GPT Trends & Ideas page
-if page == "GPT Trends & Ideas":
+elif page == "GPT Trends & Ideas":
     st.header("🤖 GPT Trends & Ideas")
     st.markdown("Store your manually written trends and corresponding GPT-generated ideas (text only).")
     

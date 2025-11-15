@@ -71,6 +71,14 @@ Help users move from passive observers to confident investors who analyze, plan,
 - Recent trades summary
 - Aggregate metrics across all features
 
+## 🚀 Future Features
+
+### 📢 Sell Alert System
+- Intelligent sell reminders based on target price and stop loss
+- Customizable alert thresholds and notification preferences
+- Real-time price monitoring and alert triggers
+- Alert center for managing all investment reminders
+
 ## Installation
 
 ### Using Poetry (Recommended)
