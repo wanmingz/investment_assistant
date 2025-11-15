@@ -31,8 +31,14 @@ Help users move from passive observers to confident investors who analyze, plan,
 
 ### 2. 💡 Trade Ideas Management
 - Record investment ideas and strategies
+- **Symbol Search**: Search for stock symbols by company name using Yahoo Finance API
 - Set entry price, target price, and stop loss
 - Record detailed investment reasoning
+- **Automatic Price Tracking**: Automatically records stock price when creating an idea
+- **Performance Monitoring**: Real-time performance tracking from idea creation date to present
+  - Displays percentage change and dollar amount change
+  - Shows performance vs. entry price (if provided)
+  - Visual metrics with color-coded indicators (green for gains, red for losses)
 - Support idea status management (active/completed/cancelled)
 - Filter and manage ideas by status
 
@@ -80,7 +86,7 @@ poetry shell
 ### Using pip
 
 ```bash
-pip install streamlit yfinance pandas python-dotenv
+pip install streamlit yfinance pandas python-dotenv requests
 ```
 
 ## Running
@@ -100,7 +106,7 @@ The application uses SQLite database to store data. The database file `investmen
 The database includes the following tables:
 
 - `gpt_trends`: Stores trend reports and their corresponding ideas (one-to-one relationship)
-- `trade_ideas`: Stores investment trade ideas
+- `trade_ideas`: Stores investment trade ideas, including `idea_price_at_creation` for performance tracking
 - `trades`: Stores actual trade records
 - `prompts`: Stores frequently used prompts
 
@@ -143,8 +149,14 @@ investment-assistant/
    - Edit or delete trends and their corresponding ideas
 
 2. **Trade Ideas**
+   - Use the symbol search feature to find stock symbols by company name
    - Record investment ideas you want to execute
    - Include symbols, price ranges, and reasoning
+   - The system automatically captures the stock price when you create an idea
+   - View real-time performance metrics in the idea list:
+     - Performance since idea creation (percentage and dollar change)
+     - Performance vs. entry price (if provided)
+     - Price progression from creation to current price
 
 3. **Trade Records**
    - Record detailed trade information after executing actual trades
@@ -173,6 +185,7 @@ The application uses Streamlit's caching mechanism for performance. If you encou
 - **SQLite**: Data storage
 - **Pandas**: Data processing
 - **yfinance**: Stock data retrieval
+- **requests**: HTTP library for symbol search API
 - **Python 3.11+**: Runtime environment
 
 ## License
