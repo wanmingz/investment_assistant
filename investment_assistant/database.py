@@ -187,16 +187,17 @@ class Database:
                       entry_price: Optional[float] = None,
                       target_price: Optional[float] = None,
                       stop_loss: Optional[float] = None,
-                      reasoning: Optional[str] = None) -> int:
+                      reasoning: Optional[str] = None,
+                      price_at_creation: Optional[float] = None) -> int:
         """添加交易想法."""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
             INSERT INTO trade_ideas 
-            (symbol, idea_description, entry_price, target_price, stop_loss, reasoning)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (symbol, idea_description, entry_price, target_price, stop_loss, reasoning))
+            (symbol, idea_description, entry_price, target_price, stop_loss, reasoning, idea_price_at_creation)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (symbol, idea_description, entry_price, target_price, stop_loss, reasoning, price_at_creation))
         
         idea_id = cursor.lastrowid
         conn.commit()
@@ -246,6 +247,20 @@ class Database:
         cursor = conn.cursor()
         
         cursor.execute("DELETE FROM trade_ideas WHERE id = ?", (idea_id,))
+        
+        conn.commit()
+        conn.close()
+    
+    def update_trade_idea_price_at_creation(self, idea_id: int, price: float):
+        """更新交易想法创建时的价格."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            UPDATE trade_ideas
+            SET idea_price_at_creation = ?
+            WHERE id = ?
+        """, (price, idea_id))
         
         conn.commit()
         conn.close()

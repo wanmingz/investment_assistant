@@ -3,7 +3,42 @@ import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
 import yfinance as yf
+import requests
 from database import Database
+
+# Helper function for symbol search
+def search_stock_symbol(company_name):
+    """通过公司名称搜索股票 symbol"""
+    try:
+        # 使用 Yahoo Finance 的搜索 API
+        url = f"https://query1.finance.yahoo.com/v1/finance/search?q={company_name}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=5)
+        
+        if response.status_code == 200:
+            data = response.json()
+            quotes = data.get('quotes', [])
+            results = []
+            for quote in quotes[:10]:  # 限制返回前10个结果
+                symbol = quote.get('symbol', '')
+                longname = quote.get('longname', '')
+                shortname = quote.get('shortname', '')
+                exchange = quote.get('exchange', '')
+                quote_type = quote.get('quoteType', '')
+                
+                # 只返回股票类型的结果
+                if quote_type in ['EQUITY', 'ETF']:
+                    results.append({
+                        'symbol': symbol,
+                        'name': longname or shortname,
+                        'exchange': exchange
+                    })
+            return results
+    except Exception as e:
+        return []
+    return []
 
 # Page configuration
 st.set_page_config(
@@ -241,9 +276,52 @@ elif page == "Trade Ideas":
     with tab1:
         st.subheader("Record New Trade Idea")
         
+        # Symbol 搜索功能
+        with st.expander("🔍 Search Symbol by Company Name", expanded=False):
+            company_search = st.text_input(
+                "Enter company name",
+                placeholder="e.g., Apple, Microsoft, Tesla",
+                key="company_search"
+            )
+            
+            if company_search and company_search.strip():
+                if st.button("🔍 Search", key="search_symbol"):
+                    with st.spinner("Searching..."):
+                        results = search_stock_symbol(company_search.strip())
+                        
+                        if results:
+                            st.success(f"Found {len(results)} result(s):")
+                            for i, result in enumerate(results):
+                                col1, col2, col3 = st.columns([3, 2, 1])
+                                with col1:
+                                    st.write(f"**{result['name']}**")
+                                    if result.get('exchange'):
+                                        st.caption(f"Exchange: {result['exchange']}")
+                                with col2:
+                                    st.code(result['symbol'], language=None)
+                                with col3:
+                                    if st.button("✓ Select", key=f"select_{i}"):
+                                        st.session_state['selected_symbol'] = result['symbol']
+                                        st.rerun()
+                        else:
+                            st.warning("No results found. Please try a different search term.")
+        
+        # Symbol 输入框（自动填充选中的 symbol）
+        selected_symbol = st.session_state.get('selected_symbol', '')
+        if selected_symbol:
+            symbol_default = selected_symbol
+            # 清除 session state，避免下次自动填充
+            del st.session_state['selected_symbol']
+        else:
+            symbol_default = ""
+        
         col1, col2 = st.columns(2)
         with col1:
-            symbol = st.text_input("Symbol", placeholder="e.g., AAPL, TSLA")
+            symbol = st.text_input(
+                "Symbol (Optional)", 
+                value=symbol_default,
+                placeholder="e.g., AAPL, TSLA or use search above"
+            )
             entry_price = st.number_input("Entry Price", min_value=0.0, format="%.2f")
             target_price = st.number_input("Target Price", min_value=0.0, format="%.2f")
         
@@ -265,13 +343,25 @@ elif page == "Trade Ideas":
         
         if st.button("💾 Save Idea", type="primary"):
             if idea_description.strip():
+                price_at_creation = None
+                # 如果有 symbol，尝试获取当前价格
+                if symbol and symbol.strip():
+                    try:
+                        ticker = yf.Ticker(symbol.strip().upper())
+                        hist = ticker.history(period="1d")
+                        if not hist.empty:
+                            price_at_creation = float(hist['Close'][-1])
+                    except Exception as e:
+                        st.warning(f"Could not fetch price for {symbol.strip()}: {str(e)}")
+                
                 db.add_trade_idea(
                     symbol=symbol if symbol else None,
                     idea_description=idea_description,
                     entry_price=entry_price if entry_price > 0 else None,
                     target_price=target_price if target_price > 0 else None,
                     stop_loss=stop_loss if stop_loss > 0 else None,
-                    reasoning=reasoning if reasoning.strip() else None
+                    reasoning=reasoning if reasoning.strip() else None,
+                    price_at_creation=price_at_creation
                 )
                 st.success("✅ Trade idea saved!")
                 st.rerun()
@@ -293,7 +383,7 @@ elif page == "Trade Ideas":
         
         if ideas:
             for idea in ideas:
-                col1, col2 = st.columns([4, 1])
+                col1, col2, col3 = st.columns([3, 2, 1])
                 with col1:
                     status_color = {
                         "active": "🟢",
@@ -326,6 +416,63 @@ elif page == "Trade Ideas":
                     st.caption(f"Created: {idea['created_at']}")
                 
                 with col2:
+                    # Performance 显示在右侧，更明显
+                    if idea['symbol'] and idea.get('idea_price_at_creation'):
+                        try:
+                            # 获取当前价格
+                            ticker = yf.Ticker(idea['symbol'])
+                            hist = ticker.history(period="1d")
+                            if not hist.empty:
+                                current_price = float(hist['Close'][-1])
+                                price_at_creation = float(idea['idea_price_at_creation'])
+                                
+                                # 计算 performance
+                                price_change = current_price - price_at_creation
+                                price_change_pct = (price_change / price_at_creation * 100) if price_at_creation > 0 else 0
+                                
+                                # 使用 st.metric 显示 performance，更醒目
+                                st.markdown("### 📊 Performance")
+                                st.metric(
+                                    label="Since Creation",
+                                    value=f"{price_change_pct:+.2f}%",
+                                    delta=f"${price_change:+.2f}",
+                                    delta_color="normal" if price_change >= 0 else "inverse"
+                                )
+                                
+                                st.caption(f"${price_at_creation:.2f} → ${current_price:.2f}")
+                                
+                                # 如果有 entry_price，也显示相对于 entry_price 的 performance
+                                if idea['entry_price']:
+                                    entry_price = float(idea['entry_price'])
+                                    entry_change = current_price - entry_price
+                                    entry_change_pct = (entry_change / entry_price * 100) if entry_price > 0 else 0
+                                    st.metric(
+                                        label="vs Entry Price",
+                                        value=f"{entry_change_pct:+.2f}%",
+                                        delta=f"${entry_change:+.2f}",
+                                        delta_color="normal" if entry_change >= 0 else "inverse"
+                                    )
+                        except Exception as e:
+                            st.caption(f"⚠️ Could not fetch current price: {str(e)}")
+                    elif idea['symbol'] and not idea.get('idea_price_at_creation'):
+                        # 如果有 symbol 但没有历史价格，尝试获取并更新
+                        try:
+                            ticker = yf.Ticker(idea['symbol'])
+                            # 尝试从创建日期获取历史价格
+                            created_date = datetime.strptime(idea['created_at'][:10], "%Y-%m-%d")
+                            end_date = created_date + timedelta(days=5)  # 获取创建日期后几天的数据
+                            hist = ticker.history(start=created_date.strftime("%Y-%m-%d"), 
+                                                end=end_date.strftime("%Y-%m-%d"))
+                            if not hist.empty:
+                                price_at_creation = float(hist['Close'][0])
+                                db.update_trade_idea_price_at_creation(idea['id'], price_at_creation)
+                                st.rerun()
+                        except Exception:
+                            pass
+                    else:
+                        st.info("No performance data")
+                
+                with col3:
                     if st.button("Delete", key=f"delete_{idea['id']}"):
                         db.delete_trade_idea(idea['id'])
                         st.rerun()
